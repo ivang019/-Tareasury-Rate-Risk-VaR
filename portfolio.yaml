@@ -1,0 +1,33 @@
+# ILLUSTRATIVE portfolio (an assumption, not data): government securities, TIIE-linked debt and a
+# hedging swap. Amounts in MXN millions; rates in % per year; terms in days to maturity.
+# `factor` is the risk rate (a column of data/sie_series.csv or a derived Mbono yield).
+positions:
+  - {id: cetes_28, type: cetes, side: asset, notional_mxn_mm: 2000, term_days: 28, factor: cetes_28}
+  - {id: cetes_91, type: cetes, side: asset, notional_mxn_mm: 1500, term_days: 91, factor: cetes_91}
+  - {id: mbono_3y, type: mbono, side: asset, notional_mxn_mm: 1000, term_days: 1092, coupon_pct: 8.0, factor: mbono_3y}
+  - {id: mbono_5y, type: mbono, side: asset, notional_mxn_mm: 500, term_days: 1820, coupon_pct: 8.5, factor: mbono_5y}
+
+  # Liability: debt paying TIIE 28 + margin; the next reset is in 14 days (assumption)
+  - id: floating_debt
+    type: floating_debt
+    side: liability
+    notional_mxn_mm: 3000
+    term_days: 1078
+    margin_pct: 0.40
+    reset_period_days: 28
+    days_to_next_reset: 14
+    factor: tiie_28
+
+  # Swap: the treasury pays fixed and receives TIIE 28 (hedges 2,000 of the 3,000 of debt).
+  # The fixed leg is discounted with the Mbono curve because the TIIE swap curve is not
+  # public: swap-vs-government basis risk is not captured.
+  - id: hedge_swap
+    type: pay_fixed_swap
+    side: derivative
+    notional_mxn_mm: 2000
+    term_days: 1078
+    fixed_rate_pct: 8.20
+    payment_period_days: 28
+    days_to_next_payment: 14
+    factor: mbono_3y
+    floating_leg_factor: tiie_28
